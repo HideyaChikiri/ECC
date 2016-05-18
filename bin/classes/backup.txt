@@ -1,0 +1,196 @@
+package com.example.ecctest;
+
+import static com.example.ecctest.MethodSet.*;
+
+import java.io.IOException;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.Color;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.os.Bundle;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.Window;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.ScrollView;
+
+public class MainActivity extends Activity implements OnClickListener {
+
+	/* アプリ共有保守パラメータ */
+	//文章
+	static final String APPLICATION_NAME = "ECCtest";
+	static final String[] SUB_TITLE = { "see", "she", "C" };
+	//	static String data[][] = DataBase.data;
+	//色
+	static final int BACK_COLOR1 = Color.rgb(255, 180, 100);
+	static final int BACK_COLOR2 = Color.rgb(255, 230, 180);
+
+	static final int BACK_COLOR3 = Color.WHITE; //背景色3（白）
+	static final int BACK_COLOR4 = Color.BLACK; //背景色3（黒）
+	static final int WORD_COLOR1 = Color.BLACK; //文字色（黒）
+	static final int WORD_COLOR2 = Color.WHITE; //文字色（白）
+	static final int WORD_COLOR3 = Color.RED; //文字色（赤）
+	//サイズ
+	static final float WORD_SIZE = 32.0f;
+
+	/* アプリ共有不変定数定義 */
+	public static final int MP = LinearLayout.LayoutParams.MATCH_PARENT; //画面最大
+	public static final int WC = LinearLayout.LayoutParams.WRAP_CONTENT; //自動調節
+	public static final int NO_ID = -1;
+	public static final int BACK_BUTTON = -2;
+	public static final int SCROLL_VER = -3;
+	public static final int MATTER_TEXT = -4; //件数表示のテキスト
+
+	public static final String NO_TAG = "-1";
+
+	/* DBデータ */
+
+	//	static final String DB_NAME = "test.db";//DB名
+	//	static final String DB_TABLE = "test"; //テーブル名
+	//	static final int DB_VERSION = 1; //バージョン
+	//	static int DB_SIZE = data.length; //DBの行サイズ
+	//	static final int ID_KINDS = 5; //idの種類
+	//	static final int START_ID = ID_KINDS; //param事情により0は使用できないから
+	//	static final int END_ID = START_ID + DB_SIZE;
+
+	/* eccdata */
+	MediaPlayer mpSee, mpShe = null;
+
+	@Override
+	public void onCreate(Bundle bundle) {
+		super.onCreate(bundle);
+
+		// 画面上のタイトルを表示しない
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+		/* 相対レイアウトのパラメータ設定 */
+		//タイトル用
+		RelativeLayout.LayoutParams param1 = new RelativeLayout.LayoutParams(MP, WC);
+		param1.addRule(RelativeLayout.CENTER_HORIZONTAL, 1);
+
+		/* 画面レイアウト */
+		// 親レイアウト生成
+		LinearLayout liV1 = makeLinearLayout(BACK_COLOR2, LinearLayout.VERTICAL, null, this);
+		setContentView(liV1);
+
+		//タイトル作成
+		RelativeLayout re1 = makeRelativeLayout(BACK_COLOR1, liV1, null, this);
+		makeTextView(APPLICATION_NAME, WORD_SIZE, WORD_COLOR1, NO_ID, re1, param1, this);
+
+		//スクロールバーの作成
+		ScrollView sc1 = makeScrollView(BACK_COLOR2, liV1, this);
+
+		LinearLayout liV2 = makeLinearLayout(BACK_COLOR2, LinearLayout.VERTICAL, sc1, this);
+
+		//ボタン作成
+		int button_num = SUB_TITLE.length;
+		for (int i = 0; i < button_num; i++) {
+			RelativeLayout r = makeRelativeLayout(BACK_COLOR2, liV2, null, this);
+			makeButton(SUB_TITLE[i], i, "0", r, param1, this);
+		}
+
+		/* 音量の指定と調節 */
+
+		// AudioManagerを取得する
+		AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+
+
+		// ストリームごとの最大音量を取得するAudioManager.STREAM_MUSIC
+		int ringMaxVolume = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+
+		// 音量を設定する（UI表示かつサウンドを再生する）
+		int flags = AudioManager.FLAG_SHOW_UI | AudioManager.FLAG_PLAY_SOUND;
+		am.setStreamVolume(AudioManager.STREAM_MUSIC, ringMaxVolume, flags);
+		am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, flags);
+
+		/* 音声の生成 */
+		mpSee = MediaPlayer.create(this, R.raw.see);
+		mpShe = MediaPlayer.create(this, R.raw.she);
+
+	}
+
+	@Override
+	public void onClick(View view) {// クリック時に呼ばれる
+		int id = view.getId();
+		Intent intent = new Intent();
+
+		/* 遷移先の指定 */
+		switch (id) {
+		case 0:
+			// 次に明示的に呼び出すアクティビティを指定
+			//			intent.setClassName("com.example.english", "com.example.english.SubView1");
+			//			startActivity(intent);
+			if (mpSee.isPlaying()) { //再生中
+				mpSee.stop();
+				try {
+					mpSee.prepare();
+				} catch (IllegalStateException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			} else { //停止中
+				mpSee.start();
+			}
+
+			break;
+
+		case 1:
+			//			intent.setClassName("com.example.english", "com.example.english.SubView2");
+			//			startActivity(intent);
+			if (mpShe.isPlaying()) { //再生中
+				mpShe.stop();
+				try {
+					mpShe.prepare();
+				} catch (IllegalStateException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			} else { //停止中
+				mpShe.start();
+			}
+			break;
+
+		case 2:
+			//			intent.setClassName("com.example.english", "com.example.english.SubView3");
+			//			startActivity(intent);
+			break;
+
+		default:
+			break;
+		}
+
+	}
+
+	// BACKボタンで終了させる
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK) {
+			new AlertDialog.Builder(this).setTitle("確認").setMessage(APPLICATION_NAME + "を終了してもよろしいですか？")
+					.setPositiveButton("はい", new DialogInterface.OnClickListener() {
+
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							MainActivity.this.finish();
+						}
+					}).setNegativeButton("いいえ", new DialogInterface.OnClickListener() {
+
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+
+						}
+					}).show();
+
+			return true;
+		}
+		return false;
+	}
+}
